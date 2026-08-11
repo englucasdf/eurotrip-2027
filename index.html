@@ -1545,15 +1545,21 @@
     })();
   }
 
+  function openAttachedFile(url){
+    const w = window.open();
+    w.location.href = url;
+  }
+
   function renderDocAttachBody(url){
     const body = document.getElementById('docAttachBody');
     if(url){
       const isFile = url.startsWith('data:');
       body.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <a href="${url}" target="_blank" ${isFile ? 'download' : ''} class="btn-submit-form" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;">
-            <i data-lucide="external-link" size="14"></i> ${isFile ? 'Abrir / baixar arquivo' : 'Abrir link'}
-          </a>
+          ${isFile
+            ? `<button onclick='openAttachedFile(${JSON.stringify(url)})' class="btn-submit-form" style="display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="eye" size="14"></i> Ver arquivo</button>`
+            : `<a href="${url}" target="_blank" class="btn-submit-form" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="external-link" size="14"></i> Abrir link</a>`
+          }
           <button class="btn-doc-download" style="justify-content:center;width:100%;box-sizing:border-box;" onclick="renderDocAttachBody(null)"><i data-lucide="pencil" size="11"></i> Trocar</button>
           <button class="btn-doc-download" style="justify-content:center;width:100%;box-sizing:border-box;color:#dc2626;" onclick="removeDocAttach()"><i data-lucide="trash-2" size="11"></i> Remover</button>
         </div>`;
