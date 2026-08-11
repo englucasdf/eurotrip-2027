@@ -1167,6 +1167,46 @@
         </div>
         <button onclick="openDocAttach('passagem_latam','Passagem_BSB_ZRH.pdf')" class="btn-doc-download" id="docbtn-passagem_latam"><i data-lucide="external-link" size="11"></i> Anexar</button>
       </div>
+      <div class="doc-item">
+        <div class="doc-left">
+          <div class="doc-icon"><i data-lucide="file-text" size="18"></i></div>
+          <div>
+            <div class="doc-title">Trem_Zurique_Paris.pdf</div>
+            <div class="doc-sub">TGV Lyria — 31/01</div>
+          </div>
+        </div>
+        <button onclick="openDocAttach('trem_zurique_paris','Trem — Zurique → Paris')" class="btn-doc-download" id="docbtn-trem_zurique_paris"><i data-lucide="external-link" size="11"></i> Anexar</button>
+      </div>
+      <div class="doc-item">
+        <div class="doc-left">
+          <div class="doc-icon"><i data-lucide="file-text" size="18"></i></div>
+          <div>
+            <div class="doc-title">Trem_Paris_Interlaken.pdf</div>
+            <div class="doc-sub">04/02</div>
+          </div>
+        </div>
+        <button onclick="openDocAttach('trem_paris_interlaken','Trem — Paris → Interlaken')" class="btn-doc-download" id="docbtn-trem_paris_interlaken"><i data-lucide="external-link" size="11"></i> Anexar</button>
+      </div>
+      <div class="doc-item">
+        <div class="doc-left">
+          <div class="doc-icon"><i data-lucide="file-text" size="18"></i></div>
+          <div>
+            <div class="doc-title">Trem_Interlaken_Fussen.pdf</div>
+            <div class="doc-sub">08/02</div>
+          </div>
+        </div>
+        <button onclick="openDocAttach('trem_interlaken_fussen','Trem — Interlaken → Füssen')" class="btn-doc-download" id="docbtn-trem_interlaken_fussen"><i data-lucide="external-link" size="11"></i> Anexar</button>
+      </div>
+      <div class="doc-item">
+        <div class="doc-left">
+          <div class="doc-icon"><i data-lucide="file-text" size="18"></i></div>
+          <div>
+            <div class="doc-title">Trem_Fussen_Zurique.pdf</div>
+            <div class="doc-sub">13/02</div>
+          </div>
+        </div>
+        <button onclick="openDocAttach('trem_fussen_zurique','Trem — Füssen → Zurique')" class="btn-doc-download" id="docbtn-trem_fussen_zurique"><i data-lucide="external-link" size="11"></i> Anexar</button>
+      </div>
     </div>
 
     <div class="doc-category-title"><i data-lucide="bed" size="15" style="color: var(--primary);"></i> Comprovantes de Hospedagem</div>
@@ -1245,6 +1285,14 @@
         </div>
         <button onclick="openDocAttach('ingressos_lindt','Ingressos_Lindt.pdf')" class="btn-doc-download" id="docbtn-ingressos_lindt"><i data-lucide="external-link" size="11"></i> Anexar</button>
       </div>
+    </div>
+
+    <div class="doc-category-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span><i data-lucide="folder-plus" size="15" style="color: var(--primary);"></i> Meus Documentos</span>
+      <button onclick="openAddCustomDoc()" style="background:var(--primary);color:#fff;border:none;width:26px;height:26px;border-radius:50%;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+    </div>
+    <div class="doc-grid" id="customDocsGrid">
+      <p style="font-size:11px;color:var(--text-muted);font-weight:600;">Nenhum documento extra ainda. Clica no "+" ali em cima pra adicionar qualquer PDF que quiser (seguro-viagem, comprovante, o que for).</p>
     </div>
   </div>
 
@@ -1556,7 +1604,7 @@
   }
 
   async function refreshDocButtonsState(){
-    const keys = ['carta_imigracao','passagem_latam','reserva_zurich','reserva_paris','reserva_interlaken','reserva_fussen','ingressos_neuschwanstein','ingressos_lindt'];
+    const keys = ['carta_imigracao','passagem_latam','trem_zurique_paris','trem_paris_interlaken','trem_interlaken_fussen','trem_fussen_zurique','reserva_zurich','reserva_paris','reserva_interlaken','reserva_fussen','ingressos_neuschwanstein','ingressos_lindt'];
     for(const key of keys){
       try{
         const res = await window.storage.get('gemini-doc:' + key, true);
@@ -1567,6 +1615,73 @@
       }catch(e){ /* ainda não anexado */ }
     }
     lucide.createIcons();
+  }
+
+  /* ===================== MEUS DOCUMENTOS (lista livre, você adiciona o que quiser) ===================== */
+  let customDocsList = [];
+
+  async function loadCustomDocsList(){
+    try{
+      const res = await window.storage.get('gemini-custom-docs-list', true);
+      if(res && res.value) customDocsList = JSON.parse(res.value);
+    }catch(e){ customDocsList = []; }
+    renderCustomDocsGrid();
+  }
+
+  async function saveCustomDocsList(){
+    try{ await window.storage.set('gemini-custom-docs-list', JSON.stringify(customDocsList), true); }
+    catch(e){ console.error('Falha ao salvar lista', e); }
+  }
+
+  function renderCustomDocsGrid(){
+    const grid = document.getElementById('customDocsGrid');
+    if(!grid) return;
+    if(customDocsList.length === 0){
+      grid.innerHTML = '<p style="font-size:11px;color:var(--text-muted);font-weight:600;">Nenhum documento extra ainda. Clica no "+" ali em cima pra adicionar qualquer PDF que quiser (seguro-viagem, comprovante, o que for).</p>';
+      return;
+    }
+    grid.innerHTML = customDocsList.map(item => `
+      <div class="doc-item">
+        <div class="doc-left">
+          <div class="doc-icon"><i data-lucide="file-text" size="18"></i></div>
+          <div>
+            <div class="doc-title">${item.label}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="openDocAttach('custom_${item.id}','${item.label.replace(/'/g,"\\'")}')" class="btn-doc-download" id="docbtn-custom_${item.id}"><i data-lucide="external-link" size="11"></i> Anexar</button>
+          <button onclick="removeCustomDoc('${item.id}')" class="btn-doc-download" style="color:#dc2626;"><i data-lucide="trash-2" size="11"></i></button>
+        </div>
+      </div>`).join('');
+    lucide.createIcons();
+    // confere se algum já tinha arquivo anexado antes (troca Anexar -> Abrir)
+    customDocsList.forEach(async item=>{
+      try{
+        const res = await window.storage.get('gemini-doc:custom_' + item.id, true);
+        if(res && res.value){
+          const btn = document.getElementById('docbtn-custom_' + item.id);
+          if(btn) btn.innerHTML = '<i data-lucide="external-link" size="11"></i> Abrir';
+          lucide.createIcons();
+        }
+      }catch(e){ /* ainda não anexado */ }
+    });
+  }
+
+  function openAddCustomDoc(){
+    const label = prompt('Nome do documento (ex: Seguro-viagem, Voucher hotel extra):');
+    if(!label || !label.trim()) return;
+    const item = { id: 'd' + Date.now() + Math.random().toString(36).slice(2,6), label: label.trim() };
+    customDocsList.push(item);
+    saveCustomDocsList();
+    renderCustomDocsGrid();
+  }
+
+  async function removeCustomDoc(id){
+    if(!confirm('Remover esse documento da lista?')) return;
+    customDocsList = customDocsList.filter(i => i.id !== id);
+    try{ await window.storage.delete('gemini-doc:custom_' + id); }catch(e){}
+    saveCustomDocsList();
+    renderCustomDocsGrid();
   }
 
   // COLEÇÃO DE VETORES SVG TEMÁTICOS PARA CADA TIPO DE PASSEIO/TRANSPORTE
@@ -2235,6 +2350,7 @@
       await restoreChecklistState();
       await restoreEventDoneState();
       await refreshDocButtonsState();
+      await loadCustomDocsList();
     }catch(e){ console.error('Falha ao sincronizar', e); }
     if(fab) fab.classList.remove('spinning');
     isSyncing = false;
@@ -2307,6 +2423,7 @@
     renderDayContent();
     renderBudget();
     refreshDocButtonsState();
+    loadCustomDocsList();
     loadFxRates();
     loadWeather();
     lucide.createIcons();
