@@ -1562,6 +1562,12 @@
     w.location.href = url;
   }
 
+  function suggestFileName(url){
+    const label = (currentDocAttachLabel || 'documento').replace(/[^\w\-]+/g, '_').replace(/_+/g,'_');
+    const ext = url.startsWith('data:application/pdf') ? '.pdf' : (url.startsWith('data:image/') ? '.' + url.split(';')[0].split('/')[1] : '');
+    return label + ext;
+  }
+
   function renderDocAttachBody(url){
     const body = document.getElementById('docAttachBody');
     if(url){
@@ -1569,7 +1575,8 @@
       body.innerHTML = `
         <div style="display:flex;flex-direction:column;gap:10px;">
           ${isFile
-            ? `<button onclick='openAttachedFile(${JSON.stringify(url)})' class="btn-submit-form" style="display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="eye" size="14"></i> Ver arquivo</button>`
+            ? `<button onclick='openAttachedFile(${JSON.stringify(url)})' class="btn-submit-form" style="display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="eye" size="14"></i> Ver arquivo</button>
+               <a href="${url}" download="${suggestFileName(url)}" class="btn-doc-download" style="justify-content:center;width:100%;box-sizing:border-box;text-decoration:none;"><i data-lucide="download" size="12"></i> Baixar arquivo</a>`
             : `<a href="${url}" target="_blank" class="btn-submit-form" style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="external-link" size="14"></i> Abrir link</a>`
           }
           <button class="btn-doc-download" style="justify-content:center;width:100%;box-sizing:border-box;" onclick="renderDocAttachBody(null)"><i data-lucide="pencil" size="11"></i> Trocar</button>
