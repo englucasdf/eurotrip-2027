@@ -198,7 +198,7 @@
     display: none;
     position: fixed;
     bottom: 90px;
-    right: 16px;
+    right: max(16px, calc(50% - 228px + 4px)); /* alinhado à coluna do app, mesmo no PC */
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -2286,14 +2286,23 @@
 
   function renderDayButtons() {
     const container = document.getElementById('daySelectorContainer');
+    const keepScroll = container.scrollLeft;          // não volta pro Dia 1 a cada clique
     container.innerHTML = '';
     itineraryData.forEach((d, idx) => {
       const btn = document.createElement('button');
       btn.className = `day-btn ${idx === currentDayIndex ? 'active' : ''}`;
-      btn.onclick = () => selectDay(idx);
+      btn.onclick = () => { if(!daySelectorDragged) selectDay(idx); };
       btn.innerHTML = `Dia ${d.dayNum} <span>${d.date}</span>`;
       container.appendChild(btn);
     });
+    container.scrollLeft = keepScroll;
+    // garante que o dia selecionado fique visível
+    const active = container.querySelector('.day-btn.active');
+    if(active){
+      const cl = container.getBoundingClientRect(), al = active.getBoundingClientRect();
+      if(al.left < cl.left) container.scrollBy({ left: al.left - cl.left - 8, behavior: 'smooth' });
+      else if(al.right > cl.right) container.scrollBy({ left: al.right - cl.right + 8, behavior: 'smooth' });
+    }
   }
 
   function selectDay(index) {
@@ -2301,6 +2310,48 @@
     renderDayButtons();
     renderDayContent();
   }
+
+  /* Seletor de dias no PC: rodinha do mouse rola pro lado, dá pra arrastar com o mouse
+     e as setas ← → do teclado trocam de dia. No celular continua o arrastar com o dedo. */
+  let daySelectorDragged = false;
+  (function enableDaySelectorDesktop(){
+    const el = document.getElementById('daySelectorContainer');
+    if(!el) return;
+    el.addEventListener('wheel', e => {
+      if(el.scrollWidth <= el.clientWidth) return;
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      const atStart = el.scrollLeft <= 0 && delta < 0;
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1 && delta > 0;
+      if(atStart || atEnd) return;                    // no fim da lista, deixa a página rolar
+      e.preventDefault();
+      el.scrollLeft += delta;
+    }, { passive: false });
+
+    let down = false, startX = 0, startScroll = 0;
+    el.addEventListener('mousedown', e => {
+      if(e.button !== 0) return;
+      down = true; daySelectorDragged = false;
+      startX = e.clientX; startScroll = el.scrollLeft;
+    });
+    window.addEventListener('mousemove', e => {
+      if(!down) return;
+      const dx = e.clientX - startX;
+      if(Math.abs(dx) > 5){ daySelectorDragged = true; el.style.cursor = 'grabbing'; }
+      if(daySelectorDragged) el.scrollLeft = startScroll - dx;
+    });
+    window.addEventListener('mouseup', () => {
+      if(!down) return;
+      down = false; el.style.cursor = '';
+      setTimeout(() => { daySelectorDragged = false; }, 0);   // o clique que fecha o arrasto não troca de dia
+    });
+
+    document.addEventListener('keydown', e => {
+      if(!document.getElementById('roteiroTab').classList.contains('active')) return;
+      if(/INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ''))) return;
+      if(e.key === 'ArrowRight' && currentDayIndex < itineraryData.length - 1) selectDay(currentDayIndex + 1);
+      if(e.key === 'ArrowLeft' && currentDayIndex > 0) selectDay(currentDayIndex - 1);
+    });
+  })();
 
   function renderDayContent() {
     const day = itineraryData[currentDayIndex];
