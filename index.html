@@ -1231,11 +1231,11 @@
         <div class="doc-left">
           <div class="doc-icon"><i data-lucide="file-text" size="18"></i></div>
           <div>
-            <div class="doc-title">Reserva_MEININGER.pdf</div>
-            <div class="doc-sub">28–31/01 e 13–15/02 • check-in 15h</div>
+            <div class="doc-title">Reserva_MEININGER_ida.pdf</div>
+            <div class="doc-sub">28–31/01 • check-in 15h • sem café da manhã</div>
           </div>
         </div>
-        <div style="display:flex;gap:6px;"><button onclick="openDocAttach('reserva_zurich','Reserva_MEININGER.pdf')" class="btn-doc-download" id="docbtn-reserva_zurich" data-label="Reserva — MEININGER Zurique"><i data-lucide="external-link" size="11"></i> Anexar</button><button onclick="openDocAttach('reserva_zurich','Reserva_MEININGER.pdf')" class="btn-doc-download" style="padding:5px 7px;" title="Gerenciar"><i data-lucide="pencil" size="11"></i></button></div>
+        <div style="display:flex;gap:6px;"><button onclick="openDocAttach('reserva_zurich','Reserva_MEININGER_ida.pdf')" class="btn-doc-download" id="docbtn-reserva_zurich" data-label="Reserva — MEININGER Zurique"><i data-lucide="external-link" size="11"></i> Anexar</button><button onclick="openDocAttach('reserva_zurich','Reserva_MEININGER_ida.pdf')" class="btn-doc-download" style="padding:5px 7px;" title="Gerenciar"><i data-lucide="pencil" size="11"></i></button></div>
       </div>
       <div class="doc-item">
         <div class="doc-left">
@@ -1266,6 +1266,16 @@
           </div>
         </div>
         <div style="display:flex;gap:6px;"><button onclick="openDocAttach('reserva_fussen','Reserva_Zum_Hechten.pdf')" class="btn-doc-download" id="docbtn-reserva_fussen" data-label="Reserva — Zum Hechten"><i data-lucide="external-link" size="11"></i> Anexar</button><button onclick="openDocAttach('reserva_fussen','Reserva_Zum_Hechten.pdf')" class="btn-doc-download" style="padding:5px 7px;" title="Gerenciar"><i data-lucide="pencil" size="11"></i></button></div>
+      </div>
+      <div class="doc-item">
+        <div class="doc-left">
+          <div class="doc-icon"><i data-lucide="file-text" size="18"></i></div>
+          <div>
+            <div class="doc-title">Reserva_MEININGER_volta.pdf</div>
+            <div class="doc-sub">13–15/02 • check-in 15h • chegada 20h28</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;"><button onclick="openDocAttach('reserva_zurich_volta','Reserva_MEININGER_volta.pdf')" class="btn-doc-download" id="docbtn-reserva_zurich_volta" data-label="Reserva — MEININGER Zurique (volta)"><i data-lucide="external-link" size="11"></i> Anexar</button><button onclick="openDocAttach('reserva_zurich_volta','Reserva_MEININGER_volta.pdf')" class="btn-doc-download" style="padding:5px 7px;" title="Gerenciar"><i data-lucide="pencil" size="11"></i></button></div>
       </div>
     </div>
 
@@ -1546,10 +1556,12 @@
     ingressos_lindt: [ { label: 'Ingressos Lindt (2 pessoas) — 30/01 10h30', url: DRIVE('1nAYCyPUrmxe-iHWEbGw3BTszpZ_B8z2H') } ],
     ingressos_neuschwanstein: [ { label: 'Neuschwanstein (2 adultos) — 09/02, retirada 8h30', url: DRIVE('1JT91es7REj8ZMNOd5p41tgMSkw__NQ9n') } ],
     reserva_zurich: [
-      { label: 'Ida 28/01–31/01 — PDF do Booking', url: DRIVE('1Ba9loZvYoitRl0tQe3_wy1w0XPtbBBFW') },
-      { label: 'Volta 13/02–15/02 — PDF do Booking', url: DRIVE('1H9g7dCLB7r06qc7eNWKiKwID2AZC4ygj') },
-      { label: 'Resumo da ida (prazos e avisos)', url: DRIVE('1q_or664oXrtlipH3GAJHClCtWS_SHvt_') },
-      { label: 'Resumo da volta (prazos e avisos)', url: DRIVE('1eIoRceYuoXHtLZ88UIZM2tRQbanlV9Ct') }
+      { label: 'MEININGER ida 28/01–31/01 — PDF do Booking', url: DRIVE('1Ba9loZvYoitRl0tQe3_wy1w0XPtbBBFW') },
+      { label: 'Resumo (prazos e avisos)', url: DRIVE('1q_or664oXrtlipH3GAJHClCtWS_SHvt_') }
+    ],
+    reserva_zurich_volta: [
+      { label: 'MEININGER volta 13/02–15/02 — PDF do Booking', url: DRIVE('1H9g7dCLB7r06qc7eNWKiKwID2AZC4ygj') },
+      { label: 'Resumo (prazos e avisos)', url: DRIVE('1eIoRceYuoXHtLZ88UIZM2tRQbanlV9Ct') }
     ],
     reserva_paris: [
       { label: 'Dream Castle 31/01–04/02 — PDF do Booking', url: DRIVE('1ZF_fQ5ig6XASiEeUCi-MaMoYGLLOepVF') },
@@ -1883,6 +1895,8 @@
   ];
 
   const categoryLabels = {
+    voo: { title: 'Passagem de Avião', icon: 'plane' },
+    hospedagem: { title: 'Hospedagens', icon: 'bed-double' },
     transporte: { title: 'Trens, Uber & Transporte', icon: 'train' },
     passeios: { title: 'Ingressos & Passeios', icon: 'ticket' },
     alimentacao: { title: 'Alimentação & Gastronomia', icon: 'utensils' }
@@ -2084,8 +2098,8 @@
     return `https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${encodeURIComponent(address)}&dropoff[nickname]=${encodeURIComponent(address)}`;
   }
 
-  function hotelDocKeyFor(hotelName){
-    if(hotelName === HOTELS.zurich) return 'reserva_zurich';
+  function hotelDocKeyFor(hotelName, dayIndex){
+    if(hotelName === HOTELS.zurich) return (dayIndex >= 16) ? 'reserva_zurich_volta' : 'reserva_zurich';
     if(hotelName === HOTELS.paris) return 'reserva_paris';
     if(hotelName === HOTELS.interlaken) return 'reserva_interlaken';
     if(hotelName === HOTELS.fussen) return 'reserva_fussen';
@@ -2392,7 +2406,7 @@
     if(day.hotel){
       hotelBar.innerHTML = `
         <div class="hotel-uber-bar">
-          <button class="hotel-name-btn" onclick="openDocAttach('${hotelDocKeyFor(day.hotel)}','Reserva — ${day.hotel}')">
+          <button class="hotel-name-btn" onclick="openDocAttach('${hotelDocKeyFor(day.hotel, currentDayIndex)}','Reserva — ${day.hotel}')">
             <i data-lucide="bed-double" size="14"></i> ${day.hotel}
           </button>
           <a class="btn-uber" href="${uberUrl(day.hotel)}" target="_blank"><i data-lucide="car" size="12"></i> Uber pra lá</a>
@@ -2556,7 +2570,7 @@
   }
 
   function prettyCity(c){
-    const map = { 'ZURIQUE':'Zurique', 'PARIS':'Paris', 'INTERLAKEN':'Interlaken', 'FUSSEN':'Füssen', 'FÜSSEN':'Füssen', 'MUNIQUE':'Munique' };
+    const map = { 'ZURIQUE':'Zurique', 'FUSSEN ':'Füssen', 'PARIS':'Paris', 'INTERLAKEN':'Interlaken', 'FUSSEN':'Füssen', 'FÜSSEN':'Füssen', 'MUNIQUE':'Munique' };
     const k = (c || '').trim().toUpperCase();
     return map[k] || k.charAt(0) + k.slice(1).toLowerCase();
   }
@@ -2611,7 +2625,56 @@
       });
     }
     if(!items.length) throw new Error('Nenhum gasto encontrado na planilha');
-    return items;
+    return [...topTableItems(rows), ...items];
+  }
+
+  /* Tabela de cima ("Roteiro geral" + "Gastos por Casal"): pega o VOO (coluna Passagem, só linhas
+     de voo — os trens já estão na tabela PASSEIOS), as HOSPEDAGENS e a ALIMENTAÇÃO estimada.
+     A coluna Uber/Trem fica de fora porque repete os transportes que já estão em PASSEIOS. */
+  function topTableItems(rows){
+    const h = rows.findIndex(r => (r[0] || '').trim().toUpperCase() === 'DATA');
+    if(h < 0) return [];
+    const head = rows[h].map(x => (x || '').trim().toUpperCase());
+    const col = name => head.findIndex(x => x.startsWith(name));
+    const cTransp = col('TRANSPORTE'), cHotel = head.indexOf('MAPS'), cCity = 2;
+    // colunas de valores: as que vêm depois da coluna "OBSERVAÇÕES"
+    const after = head.findIndex(x => x.startsWith('OBSERVA'));
+    const money = name => head.findIndex((x, i) => i > after && x.startsWith(name));
+    const cPass = money('PASSAGEM'), cHosp = money('HOSPEDAGEM'), cFood = money('ALIMENTA');
+    const out = [];
+    let flightTotal = 0, flightLegs = [];
+    const food = [];   // agrupa alimentação por cidade (dias seguidos)
+    for(let i = h + 1; i < rows.length; i++){
+      const r = rows[i];
+      const date = (r[0] || '').trim();
+      if(!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(date)) break;   // acabou a tabela do roteiro
+      const d = prettyDate(date);
+      let city = prettyCity((r[cCity] || '').replace(/^Ida para\s*/i, '').trim());
+      if(/^bras[ií]lia$/i.test(city)) city = food.length ? food[food.length - 1].city : city;  // dia da volta conta na cidade anterior
+      const transp = (r[cTransp] || '').trim();
+      if(cPass >= 0 && /voo/i.test(transp)){
+        const v = parseBRL(r[cPass]);
+        flightTotal += v;
+        flightLegs.push(d);
+      }
+      if(cHosp >= 0){
+        const v = parseBRL(r[cHosp]);
+        if(v > 0) out.push({ id: 'h' + i, fromSheet: true, cat: 'hospedagem', icon: 'bed-double', price: v, status: 'A PAGAR',
+          name: (r[cHotel] || 'Hospedagem').trim(), sub: `${city} • ${d}` });
+      }
+      if(cFood >= 0){
+        const v = parseBRL(r[cFood]);
+        const last = food[food.length - 1];
+        if(last && last.city === city){ last.total += v; last.days++; last.to = d; }
+        else food.push({ city, total: v, days: 1, from: d, to: d, row: i });
+      }
+    }
+    if(flightTotal > 0) out.unshift({ id: 'f1', fromSheet: true, cat: 'voo', icon: 'plane', price: flightTotal, status: 'PAGO',
+      name: 'Voo LATAM — ida e volta', sub: 'Dias ' + flightLegs.join(' e ') });
+    food.filter(f => f.total > 0).forEach(f => out.push({ id: 'a' + f.row, fromSheet: true, cat: 'alimentacao', icon: 'utensils',
+      price: f.total, status: 'A PAGAR', name: `Alimentação em ${f.city} (estimativa)`,
+      sub: `${f.days} dia${f.days > 1 ? 's' : ''} • ${f.from}${f.to !== f.from ? ' a ' + f.to : ''}` }));
+    return out;
   }
 
   async function fetchSheetCsv(){
