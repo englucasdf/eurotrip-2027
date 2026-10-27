@@ -776,6 +776,21 @@
 
   .doc-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 
+  /* Grupos de documentos em sanfona: toca no título pra abrir/fechar */
+  .doc-category-title.doc-group-toggle {
+    cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md);
+    padding: 12px; margin: 8px 0;
+  }
+  .doc-category-title.doc-group-toggle:active { transform: scale(0.99); }
+  .doc-group-count {
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    background: var(--bg-main, #f1f5f9); border-radius: 999px; padding: 1px 8px;
+  }
+  .doc-group-chevron { margin-left: 6px; color: var(--text-muted); display: inline-flex; transition: transform .2s ease; }
+  .doc-category-title.open .doc-group-chevron { transform: rotate(180deg); }
+  .doc-grid.doc-group-closed { display: none; }
+
   .doc-item {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -1783,6 +1798,53 @@
     renderCustomDocsGrid();
   }
 
+  /* ===== Sanfona dos grupos de documentos ===== */
+  const DOC_GROUPS_KEY = 'eurotrip-doc-groups-open';
+  function readOpenGroups(){ try{ return JSON.parse(localStorage.getItem(DOC_GROUPS_KEY) || '[]'); }catch(e){ return []; } }
+  function writeOpenGroups(list){ try{ localStorage.setItem(DOC_GROUPS_KEY, JSON.stringify(list)); }catch(e){} }
+
+  function setDocGroupOpen(cat, open){
+    const grid = document.getElementById('grid-' + cat);
+    const title = grid && grid.previousElementSibling;
+    if(!grid || !title) return;
+    grid.classList.toggle('doc-group-closed', !open);
+    title.classList.toggle('open', open);
+    const list = readOpenGroups().filter(c => c !== cat);
+    if(open) list.push(cat);
+    writeOpenGroups(list);
+  }
+
+  function updateDocGroupCounts(){
+    CUSTOM_DOC_CATEGORIES.forEach(cat => {
+      const grid = document.getElementById('grid-' + cat);
+      const badge = grid && grid.previousElementSibling && grid.previousElementSibling.querySelector('.doc-group-count');
+      if(badge) badge.textContent = grid.querySelectorAll('.doc-item').length;
+    });
+  }
+
+  function initDocGroups(){
+    const open = readOpenGroups();
+    CUSTOM_DOC_CATEGORIES.forEach(cat => {
+      const grid = document.getElementById('grid-' + cat);
+      const title = grid && grid.previousElementSibling;
+      if(!title || !title.classList.contains('doc-category-title') || title.classList.contains('doc-group-toggle')) return;
+      title.classList.add('doc-group-toggle');
+      const addBtn = title.querySelector('.btn-add-doc-inline');
+      const count = document.createElement('span'); count.className = 'doc-group-count';
+      const chev = document.createElement('span'); chev.className = 'doc-group-chevron';
+      chev.innerHTML = '<i data-lucide="chevron-down" size="16"></i>';
+      title.insertBefore(count, addBtn);
+      if(addBtn){
+        addBtn.after(chev);
+        addBtn.addEventListener('click', e => { e.stopPropagation(); setDocGroupOpen(cat, true); });
+      } else title.appendChild(chev);
+      title.addEventListener('click', () => setDocGroupOpen(cat, !title.classList.contains('open')));
+      setDocGroupOpen(cat, open.includes(cat));
+    });
+    updateDocGroupCounts();
+    lucide.createIcons();
+  }
+
   async function saveCustomDocsList(){
     try{ await window.storage.set('gemini-custom-docs-list', JSON.stringify(customDocsList), true); }
     catch(e){ console.error('Falha ao salvar lista', e); }
@@ -1817,6 +1879,7 @@
         </div>`).join('');
     });
     lucide.createIcons();
+    updateDocGroupCounts();
     // confere se algum já tinha arquivo anexado antes (troca Anexar -> Abrir)
     customDocsList.forEach(async item=>{
       try{
@@ -2295,7 +2358,7 @@
       routeDest: 'Fussen Germany',
       checklist: ['Dia livre para compras e caminhada'],
       events: [
-        { time: '10:00', title: 'Dia Livre em Füssen', desc: 'Passeio calmo pela cidade velha e arredores', tag: 'Passeio', tagClass: 'tag-attraction', price: 'A PAGAR', query: 'Fussen Germany', svgType: 'castle', pdfTicket: false }
+        { time: '10:00', title: 'Dia Livre em Füssen', desc: 'Passeio calmo pela cidade velha e arredores', tag: 'Passeio', tagClass: 'tag-attraction', price: 'Livre', query: 'Fussen Germany', svgType: 'castle', pdfTicket: false }
       ]
     },
     {
@@ -2333,6 +2396,49 @@
   ];
 
   let currentDayIndex = 0;
+
+  /* ===== Preço/status do roteiro vindo do orçamento (planilha) =====
+     Cada card procura, no orçamento, o gasto do mesmo dia com o nome mais parecido.
+     Assim, marcar PAGO na planilha muda o roteiro também. */
+  const MATCH_STOP = new Set(['para','pela','pelo','ate','com','dos','das','que','tradicional','visita','visitar','passear','fotos']);
+  function matchTokens(t){
+    return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      .replace(/\(.*?\)/g, ' ').split(/[^a-z0-9]+/).filter(w => w.length >= 3 && !MATCH_STOP.has(w));
+  }
+  function findBudgetMatch(date, text){
+    const want = new Set(matchTokens(text));
+    let best = null, bestScore = 0;
+    budgetItems.forEach(it => {
+      const m = String(it.sub || '').match(/Dia (\d{2}\/\d{2})/);
+      if(!m || m[1] !== date) return;
+      const toks = matchTokens(it.name);
+      const shared = toks.filter(w => want.has(w)).length;
+      const score = shared ? shared - 0.1 * (toks.length - shared) : 0;   // desempate: o nome mais "enxuto" ganha
+      if(score > bestScore){ best = it; bestScore = score; }
+    });
+    return best;
+  }
+  function fmtBRL(v){
+    const n = Number(v) || 0;
+    return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 });
+  }
+  function liveEventPrice(day, ev){
+    if(!/R\$/.test(ev.price || '')) return ev.price;               // GRÁTIS / "Incluso" ficam como estão
+    const it = findBudgetMatch(day.date, ev.title);
+    if(!it) return ev.price;
+    if(it.price === 0) return 'GRÁTIS';
+    const suffix = ((ev.price.match(/\((?:PAGO|A PAGAR)(.*)\)/) || [])[1]) || '';   // ex.: " — viagem toda"
+    return `${fmtBRL(it.price)} (${it.status}${suffix})`;
+  }
+  function liveChecklistText(day, task){
+    if(!/R\$/.test(task)) return task;
+    const it = findBudgetMatch(day.date, task);
+    if(!it) return task;
+    const label = it.price === 0 ? 'GRÁTIS' : `${it.status === 'PAGO' ? 'PAGO ' : ''}${fmtBRL(it.price)}`;
+    return task.replace(/\s*\([^()]*R\$[^()]*\)\s*$/, '') + ` (${label})`;
+  }
+  let lastBudgetSignature = '';
+  function budgetSignature(){ return budgetItems.map(i => i.id + i.price + i.status).join('|'); }
 
   function renderDayButtons() {
     const container = document.getElementById('daySelectorContainer');
@@ -2434,7 +2540,7 @@
       const key = day.dayId + '-check-' + idx;
       const label = document.createElement('label');
       label.className = 'todo-item';
-      label.innerHTML = `<input type="checkbox" data-key="${key}"> <span>${task}</span>`;
+      label.innerHTML = `<input type="checkbox" data-key="${key}"> <span>${liveChecklistText(day, task)}</span>`;
       label.onclick = () => {
         const input = label.querySelector('input');
         saveChecklistState(key, input.checked);
@@ -2485,7 +2591,7 @@
         </div>
         <div class="card-footer">
           <span class="tag ${ev.tagClass}">${ev.tag}</span>
-          <span class="card-price">${ev.price}</span>
+          <span class="card-price">${liveEventPrice(day, ev)}</span>
         </div>
       `;
       timelineContainer.appendChild(card);
@@ -2782,6 +2888,8 @@
     try{
       await loadBudgetItems();
       renderBudget();
+      const sig = budgetSignature();
+      if(sig !== lastBudgetSignature){ lastBudgetSignature = sig; renderDayContent(); }   // só redesenha o roteiro se algo mudou
       await restoreChecklistState();
       await restoreEventDoneState();
       await refreshDocButtonsState();
@@ -2855,10 +2963,12 @@
   // Inicializar (carrega o que já foi salvo antes de desenhar a tela)
   (async function init(){
     await loadBudgetItems();
+    lastBudgetSignature = budgetSignature();
     renderDayButtons();
     renderDayContent();
     renderBudget();
     refreshDocButtonsState();
+    initDocGroups();
     loadCustomDocsList();
     loadFxRates();
     loadWeather();
